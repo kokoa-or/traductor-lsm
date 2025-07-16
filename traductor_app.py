@@ -1,20 +1,22 @@
 
+
 import streamlit as st
 import cv2
 import numpy as np
 import mediapipe as mp
 from tensorflow.keras.models import load_model
-import pyttsx3
+from gtts import gTTS
+import os
 import time
+import tempfile
+import pygame
 
 GESTURES = ['hola', 'gracias', 'bien', 'comer', 'como estas']
 SEQUENCE_LENGTH = 30
-modelo = load_model('modelo_lsm.h5')
-voz = pyttsx3.init()
-voz.setProperty('rate', 150)
+modelo = load_model("modelo_lsm.h5")
 
 mp_hands = mp.solutions.hands
-hands = mp_hands.Hands(max_num_hands=3, min_detection_confidence=0.7)
+hands = mp_hands.Hands(max_num_hands=2, min_detection_confidence=0.7)
 
 def extract_keypoints(results):
     if results.multi_hand_landmarks:
@@ -30,7 +32,18 @@ def extract_keypoints(results):
     else:
         return np.zeros(126)
 
-st.title("🖐️ Traductor LSM en Streamlit")
+def reproducir_voz(texto):
+    tts = gTTS(text=texto, lang='es')
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as fp:
+        tts.save(fp.name)
+        pygame.mixer.init()
+        pygame.mixer.music.load(fp.name)
+        pygame.mixer.music.play()
+        while pygame.mixer.music.get_busy():
+            continue
+        pygame.mixer.quit()
+
+st.title(" Traductor LSM")
 st.markdown("Traducción de señas en vivo usando cámara y modelo LSM.")
 
 frame_window = st.image([])
@@ -43,7 +56,7 @@ predicciones = []
 ultima_salida = ""
 tiempo_ultima_salida = 0
 
-cap = cv2.VideoCapture(1)
+cap = cv2.VideoCapture(0)
 
 while run:
     ret, frame = cap.read()
@@ -71,10 +84,9 @@ while run:
                 if salida != ultima_salida or (time.time() - tiempo_ultima_salida) > 2:
                     ultima_salida = salida
                     tiempo_ultima_salida = time.time()
-                    voz.say(salida)
-                    voz.runAndWait()
+                    reproducir_voz(salida)
 
-    text_placeholder.markdown(f"Seña reconocida: `{salida}`")
+    text_placeholder.markdown(f"### Seña reconocida: `{salida}`")
     img = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
     frame_window.image(img)
 
