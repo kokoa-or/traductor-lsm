@@ -2,6 +2,6 @@ streamlit
 tensorflow
 opencv-python
 mediapipe
-pyttsx3
+gTTs
 numpy
 Pillow
