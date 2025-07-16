@@ -1,8 +1,7 @@
 streamlit
+tensorflow
 opencv-python
 mediapipe
+pyttsx3
 numpy
-keras
-tensorflow
-gtts
-pillow
+Pillow
